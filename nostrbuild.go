@@ -2,11 +2,14 @@ package nostrbuild
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/nbd-wtf/go-nostr"
 )
 
 type Dimensions struct {
@@ -59,7 +62,7 @@ type Response struct {
 	Status  string `json:"status"`
 }
 
-func Upload(buf *bytes.Buffer) (*Response, error) {
+func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	part, err := w.CreateFormFile("fileToUpload", "fileToUpload")
@@ -71,11 +74,30 @@ func Upload(buf *bytes.Buffer) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodPost, "https://nostr.build/api/v2/upload/files", &b)
+
+	postUrl := "https://nostr.build/api/v2/upload/files"
+
+	req, err := http.NewRequest(http.MethodPost, postUrl, &b)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	if f != nil {
+		var ev nostr.Event
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", postUrl})
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "POST"})
+		err = f(&ev)
+		if err != nil {
+			return nil, err
+		}
+		b, err := ev.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Nostr "+base64.StdEncoding.EncodeToString(b))
+	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
