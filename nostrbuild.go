@@ -95,6 +95,8 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 		if err != nil {
 			return nil, err
 		}
+		ev.Kind = 27235
+		ev.CreatedAt = nostr.Now()
 		req.Header.Set("Authorization", "Nostr "+base64.StdEncoding.EncodeToString(b))
 	}
 
