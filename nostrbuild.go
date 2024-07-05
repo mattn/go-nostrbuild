@@ -59,7 +59,7 @@ type Data struct {
 }
 
 type Response struct {
-	Data    []Data `json:"data"`
+	Data    []Data `json:"data,omitempty"`
 	Message string `json:"message"`
 	Status  string `json:"status"`
 }
