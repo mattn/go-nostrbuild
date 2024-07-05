@@ -130,7 +130,7 @@ func Delete(url string, f func(ev *nostr.Event) error) (*Response, error) {
 	if f != nil {
 		var ev nostr.Event
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", url})
-		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "POST"})
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "DELETE"})
 		err = f(&ev)
 		if err != nil {
 			return nil, err
