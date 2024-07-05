@@ -53,11 +53,10 @@ func doUpload(cCtx *cli.Context) error {
 
 func doDelete(cCtx *cli.Context) error {
 	for _, arg := range cCtx.Args().Slice() {
-		result, err := nostrbuild.Delete(arg, sign)
+		_, err := nostrbuild.Delete(arg, sign)
 		if err != nil {
 			return err
 		}
-		fmt.Println(result.Data[0].URL)
 	}
 	return nil
 }

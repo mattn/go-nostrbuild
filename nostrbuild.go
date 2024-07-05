@@ -8,6 +8,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
+	"path"
 
 	"github.com/nbd-wtf/go-nostr"
 )
@@ -87,12 +89,12 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 		var ev nostr.Event
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", postUrl})
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "POST"})
+		ev.Kind = 27235
+		ev.CreatedAt = nostr.Now()
 		err = f(&ev)
 		if err != nil {
 			return nil, err
 		}
-		ev.Kind = 27235
-		ev.CreatedAt = nostr.Now()
 		b, err := ev.MarshalJSON()
 		if err != nil {
 			return nil, err
@@ -120,23 +122,29 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 	return &p, nil
 }
 
-func Delete(url string, f func(ev *nostr.Event) error) (*Response, error) {
-	println(url)
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
+func Delete(deleteUrl string, f func(ev *nostr.Event) error) (*Response, error) {
+	if u, err := url.Parse(deleteUrl); err == nil {
+		u.Host = "nostr.build"
+		u.Path = path.Join("/api/v2/nip96/upload", path.Base(deleteUrl))
+		deleteUrl = u.String()
+		println(deleteUrl)
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, deleteUrl, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	if f != nil {
 		var ev nostr.Event
-		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", url})
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", deleteUrl})
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "DELETE"})
+		ev.Kind = 27235
+		ev.CreatedAt = nostr.Now()
 		err = f(&ev)
 		if err != nil {
 			return nil, err
 		}
-		ev.Kind = 27235
-		ev.CreatedAt = nostr.Now()
 		b, err := ev.MarshalJSON()
 		if err != nil {
 			return nil, err
@@ -148,8 +156,8 @@ func Delete(url string, f func(ev *nostr.Event) error) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	println(resp.StatusCode)
 	if resp.StatusCode != 200 {
 		if b, err := io.ReadAll(resp.Body); err == nil {
 			return nil, errors.New(string(b))
@@ -161,5 +169,6 @@ func Delete(url string, f func(ev *nostr.Event) error) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &p, nil
 }
