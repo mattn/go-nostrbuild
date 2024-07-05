@@ -119,3 +119,47 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 	}
 	return &p, nil
 }
+
+func Delete(url string, f func(ev *nostr.Event) error) (*Response, error) {
+	println(url)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if f != nil {
+		var ev nostr.Event
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", url})
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "POST"})
+		err = f(&ev)
+		if err != nil {
+			return nil, err
+		}
+		ev.Kind = 27235
+		ev.CreatedAt = nostr.Now()
+		b, err := ev.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Nostr "+base64.StdEncoding.EncodeToString(b))
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	println(resp.StatusCode)
+	if resp.StatusCode != 200 {
+		if b, err := io.ReadAll(resp.Body); err == nil {
+			return nil, errors.New(string(b))
+		}
+	}
+
+	var p Response
+	err = json.NewDecoder(resp.Body).Decode(&p)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
