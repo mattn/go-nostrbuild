@@ -16,7 +16,7 @@ var nsec string
 
 const name = "nbcmd"
 
-const version = "0.0.1"
+const version = "0.0.7"
 
 var revision = "HEAD"
 
