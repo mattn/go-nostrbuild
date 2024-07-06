@@ -20,25 +20,25 @@ type Dimensions struct {
 }
 
 type Metadata struct {
-	Date_create              string `json:"date:create"`
-	Date_modify              string `json:"date:modify"`
-	Png_IHDR_bit_depth_orig  string `json:"png:IHDR.bit-depth-orig"`
-	Png_IHDR_bitDepth        string `json:"png:IHDR.bit_depth"`
-	Png_IHDR_color_type_orig string `json:"png:IHDR.color-type-orig"`
-	Png_IHDR_colorType       string `json:"png:IHDR.color_type"`
-	Png_IHDR_interlaceMethod string `json:"png:IHDR.interlace_method"`
-	Png_IHDR_width_height    string `json:"png:IHDR.width,height"`
-	Png_PLTE_numberColors    string `json:"png:PLTE.number_colors"`
-	Png_pHYs                 string `json:"png:pHYs"`
-	Png_sRGB                 string `json:"png:sRGB"`
+	DateCreate             string `json:"date:create"`
+	DateModify             string `json:"date:modify"`
+	PngIHDRBitDepthOrig    string `json:"png:IHDR.bit-depth-orig"`
+	PngIHDRBitDepth        string `json:"png:IHDR.bit_depth"`
+	PngIHDRColorTypeOrig   string `json:"png:IHDR.color-type-orig"`
+	PngIHDRColorType       string `json:"png:IHDR.color_type"`
+	PngIHDRInterlaceMethod string `json:"png:IHDR.interlace_method"`
+	PngIHDRWidthHeight     string `json:"png:IHDR.width,height"`
+	PngPLTENumberColors    string `json:"png:PLTE.number_colors"`
+	PngPHYS                string `json:"png:pHYs"`
+	PngSRGB                string `json:"png:sRGB"`
 }
 
 type Responsive struct {
-	One080p  string `json:"1080p"`
-	Two40p   string `json:"240p"`
-	Three60p string `json:"360p"`
-	Four80p  string `json:"480p"`
-	Seven20p string `json:"720p"`
+	S1080p string `json:"1080p"`
+	S240p  string `json:"240p"`
+	S360p  string `json:"360p"`
+	S480p  string `json:"480p"`
+	S720p  string `json:"720p"`
 }
 
 type Data struct {
