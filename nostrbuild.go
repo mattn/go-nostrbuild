@@ -127,7 +127,6 @@ func Delete(deleteUrl string, f func(ev *nostr.Event) error) (*Response, error) 
 		u.Host = "nostr.build"
 		u.Path = path.Join("/api/v2/nip96/upload", path.Base(deleteUrl))
 		deleteUrl = u.String()
-		println(deleteUrl)
 	}
 
 	req, err := http.NewRequest(http.MethodDelete, deleteUrl, nil)

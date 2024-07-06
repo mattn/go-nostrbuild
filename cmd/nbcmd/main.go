@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -43,6 +44,7 @@ func sign(ev *nostr.Event) error {
 }
 
 func doUpload(cCtx *cli.Context) error {
+	verbose := cCtx.Bool("v")
 	for _, arg := range cCtx.Args().Slice() {
 		b, err := ioutil.ReadFile(arg)
 		if err != nil {
@@ -52,16 +54,26 @@ func doUpload(cCtx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(result.Data[0].URL)
+		if verbose {
+			json.NewEncoder(os.Stdout).Encode(result)
+		} else {
+			fmt.Println(result.Data[0].URL)
+		}
 	}
 	return nil
 }
 
 func doDelete(cCtx *cli.Context) error {
+	verbose := cCtx.Bool("v")
 	for _, arg := range cCtx.Args().Slice() {
-		_, err := nostrbuild.Delete(arg, sign)
+		result, err := nostrbuild.Delete(arg, sign)
 		if err != nil {
 			return err
+		}
+		if verbose {
+			json.NewEncoder(os.Stdout).Encode(result)
+		} else {
+			fmt.Println(result.Message)
 		}
 	}
 	return nil
@@ -73,15 +85,19 @@ func main() {
 		Description: "A cli application for nostr.build",
 		Commands: []*cli.Command{
 			{
-				Name:   "upload",
-				Usage:  "upload image files",
-				Flags:  []cli.Flag{},
+				Name:  "upload",
+				Usage: "upload image files",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "v", Usage: "verbose"},
+				},
 				Action: doUpload,
 			},
 			{
-				Name:   "delete",
-				Usage:  "delete image files",
-				Flags:  []cli.Flag{},
+				Name:  "delete",
+				Usage: "delete image files",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{Name: "v", Usage: "verbose"},
+				},
 				Action: doDelete,
 			},
 		},
