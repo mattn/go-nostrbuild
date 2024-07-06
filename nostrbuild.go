@@ -49,7 +49,7 @@ type Data struct {
 	Metadata         Metadata   `json:"metadata"`
 	Mime             string     `json:"mime"`
 	Name             string     `json:"name"`
-	OriginalSha256   string     `json:"original_sha256"`
+	OriginalSHA256   string     `json:"original_sha256"`
 	Responsive       Responsive `json:"responsive"`
 	Sha256           string     `json:"sha256"`
 	Size             int64      `json:"size"`
@@ -64,14 +64,19 @@ type Response struct {
 	Status  string `json:"status"`
 }
 
-func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error) {
+type Signer func(ev *nostr.Event) error
+
+func Upload(buf *bytes.Buffer, sign Signer) (*Response, error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	part, err := w.CreateFormFile("fileToUpload", "fileToUpload")
 	if err != nil {
 		return nil, err
 	}
-	part.Write(buf.Bytes())
+	_, err = part.Write(buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
 	err = w.Close()
 	if err != nil {
 		return nil, err
@@ -85,13 +90,13 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	if f != nil {
+	if sign != nil {
 		var ev nostr.Event
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", postUrl})
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "POST"})
 		ev.Kind = 27235
 		ev.CreatedAt = nostr.Now()
-		err = f(&ev)
+		err = sign(&ev)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +127,7 @@ func Upload(buf *bytes.Buffer, f func(ev *nostr.Event) error) (*Response, error)
 	return &p, nil
 }
 
-func Delete(deleteUrl string, f func(ev *nostr.Event) error) (*Response, error) {
+func Delete(deleteUrl string, sign Signer) (*Response, error) {
 	if u, err := url.Parse(deleteUrl); err == nil {
 		u.Host = "nostr.build"
 		u.Path = path.Join("/api/v2/nip96/upload", path.Base(deleteUrl))
@@ -134,13 +139,13 @@ func Delete(deleteUrl string, f func(ev *nostr.Event) error) (*Response, error) 
 		return nil, err
 	}
 
-	if f != nil {
+	if sign != nil {
 		var ev nostr.Event
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"u", deleteUrl})
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"method", "DELETE"})
 		ev.Kind = 27235
 		ev.CreatedAt = nostr.Now()
-		err = f(&ev)
+		err = sign(&ev)
 		if err != nil {
 			return nil, err
 		}
