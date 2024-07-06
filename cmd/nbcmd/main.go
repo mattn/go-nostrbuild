@@ -14,6 +14,12 @@ import (
 
 var nsec string
 
+const name = "nbcmd"
+
+const version = "0.0.0"
+
+var revision = "HEAD"
+
 func init() {
 	nsec = os.Getenv("NBCMD_NSEC")
 }
